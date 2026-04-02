@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin-top: 50px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .weather-info {
+            margin-top: 20px;
+        }
+        .forecast {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .forecast-day {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather Dashboard</h1>
+        <input type="text" id="cityInput" placeholder="Enter city name" />
+        <button id="searchBtn">Search</button>
+        <div class="weather-info" id="weatherInfo"></div>
+        <div class="forecast" id="forecast"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api.open-meteo.com/v1/forecast';
+        const geocodeAPI_URL = 'https://api.open-meteo.com/v1/geocode';
+
+        document.getElementById('searchBtn').onclick = function() {
+            const city = document.getElementById('cityInput').value;
+            fetchWeather(city);
+            document.getElementById('cityInput').value = '';
+        };
+
+        async function fetchWeather(city) {
+            try {
+                const geocodeResponse = await fetch(`${geocodeAPI_URL}?name=${city}`);
+                const geocodeData = await geocodeResponse.json();
+                const { latitude, longitude } = geocodeData.results[0];
+
+                const weatherResponse = await fetch(`${API_URL}?latitude=${latitude}&longitude=${longitude}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto`);
+                const weatherData = await weatherResponse.json();
+                displayCurrentWeather(weatherData.current_weather);
+                displayForecast(weatherData.daily);
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                alert('Failed to fetch weather data. Please try again.');
+            }
+        }
+
+        function displayCurrentWeather(currentWeather) {
+            const weatherInfo = document.getElementById('weatherInfo');
+            weatherInfo.innerHTML = `<h2>Current Weather</h2>\n` +
+                `<p>Temperature: ${currentWeather.temperature}°C</p>\n` +
+                `<p>Condition: ${currentWeather.weathercode}</p>\n` +
+                `<p>Humidity: ${currentWeather.humidity}%</p>\n` +
+                `<p>Wind Speed: ${currentWeather.windspeed} km/h</p>`;
+        }
+
+        function displayForecast(dailyData) {
+            const forecast = document.getElementById('forecast');
+            forecast.innerHTML = '';
+            dailyData.forEach((day) => {
+                forecast.innerHTML += `<div class='forecast-day'>\n` +
+                    `<h3>${day.date}</h3>\n` +
+                    `<p>Max Temp: ${day.temperature_2m_max}°C</p>\n` +
+                    `<p>Min Temp: ${day.temperature_2m_min}°C</p>\n` +
+                    `<p>Precipitation: ${day.precipitation_sum} mm</p>\n` +
+                `</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
