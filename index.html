@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Space Shooter Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { background: #000; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let player = { x: 400, y: 500, width: 50, height: 50, speed: 5 }; 
+    let bullets = []; 
+    let enemies = []; 
+
+    // Setup the game loop
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    // Update game elements
+    function update() {
+        for (let bullet of bullets) {
+            bullet.y -= bullet.speed;
+        }
+
+        bullets = bullets.filter(bullet => bullet.y > 0);
+    }
+
+    // Draw the game scene
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00f';
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+
+        for (let bullet of bullets) {
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        }
+    }
+
+    // Player controls
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'ArrowLeft') player.x -= player.speed;
+        if (e.code === 'ArrowRight') player.x += player.speed;
+        if (e.code === 'Space') {
+            bullets.push({ x: player.x + player.width / 2 - 2.5, y: player.y, width: 5, height: 20, speed: 10 });
+        }
+    });
+
+    gameLoop();
+</script>
+</body>
+</html>
